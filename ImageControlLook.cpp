@@ -1,12 +1,6 @@
 /*
- * Copyright 2021 Haiku, Inc.
  * Copyright 2022, Jaidyn Levesque <jadedctrl@teknik.io>
  * All rights reserved. Distributed under the terms of the MIT license.
- *
- * Authors:
- *		Stephan Aßmus, superstippi@gmx.de
- *		John Scipione, jscipione@gmail.com
- *		Nahuel Tello, ntello@unarix.com.ar
  */
 
 #include "ImageControlLook.h"
@@ -24,6 +18,8 @@ ImageControlLook::ImageControlLook(image_id id)
 		fButton[i].fill(NULL);
 	fCheckBox_Checked.fill(NULL);
 	fCheckBox_Unchecked.fill(NULL);
+	fSliderThumb.fill(NULL);
+	fSliderTriangle.fill(NULL);
 
 	fImageRoot = BPath("/boot/home/Desktop/projects/haiku/ImageControlLook/data/ImageThemes/OS-X-Leopard/");
 }
@@ -73,7 +69,7 @@ void
 ImageControlLook::DrawButtonBackground(BView* view, BRect& rect, const BRect& updateRect,
 	const rgb_color& base, uint32 flags, uint32 borders, orientation orientation)
 {
-	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, borders, orientation))
+	if (!_DrawTiledImage("Button", _FlagsToState(flags), view, rect, updateRect, orientation))
 		HaikuControlLook::DrawButtonBackground(view, rect, updateRect, base, flags, borders,
 			orientation);
 }
@@ -83,7 +79,7 @@ void
 ImageControlLook::DrawButtonBackground(BView* view, BRect& rect, const BRect& updateRect,
 	float radius, const rgb_color& base, uint32 flags, uint32 borders, orientation orientation)
 {
-	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, borders, orientation))
+	if (!_DrawTiledImage("Button", _FlagsToState(flags), view, rect, updateRect, orientation))
 		HaikuControlLook::DrawButtonBackground(view, rect, updateRect, radius, base, flags, borders,
 			orientation);
 }
@@ -94,7 +90,7 @@ ImageControlLook::DrawButtonBackground(BView* view, BRect& rect, const BRect& up
 	float leftTopRadius, float rightTopRadius, float leftBottomRadius, float rightBottomRadius,
 	const rgb_color& base, uint32 flags, uint32 borders, orientation orientation)
 {
-	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, borders, orientation))
+	if (!_DrawTiledImage("Button", _FlagsToState(flags), view, rect, updateRect, orientation))
 		HaikuControlLook::DrawButtonBackground(view, rect, updateRect, leftTopRadius,
 			rightTopRadius,leftBottomRadius, rightBottomRadius, base, flags, borders, orientation);
 }
@@ -104,43 +100,66 @@ void
 ImageControlLook::DrawCheckBox(BView* view, BRect& rect, const BRect& updateRect,
 	const rgb_color& base, uint32 flags)
 {
-	BBitmap* checkBox = NULL;
+	bool drawn = false;
 	if (((BControl*)view)->Value() == B_CONTROL_ON)
-		checkBox = _Image("CheckBox-Checked", _FlagsToState(flags & ~B_ACTIVATED));
+		drawn = _DrawImage("CheckBox-Checked", _FlagsToState(flags & ~B_ACTIVATED), view, rect);
 	else
-		checkBox = _Image("CheckBox-Unchecked", _FlagsToState(flags));
+		drawn = _DrawImage("CheckBox-Unchecked", _FlagsToState(flags), view, rect);
 
-	if (checkBox == NULL)
+	if (!drawn)
 		HaikuControlLook::DrawCheckBox(view, rect, updateRect, base, flags);
-	else {
-		view->SetDrawingMode(B_OP_ALPHA);
-		view->DrawBitmap(checkBox, rect);
-	}
 }
 
 
-uint32
-ImageControlLook::_FlagsToState(uint32 flags)
+void
+ImageControlLook::DrawSliderThumb(BView* view, BRect& rect, const BRect& updateRect,
+	const rgb_color& base, uint32 flags, orientation orientation)
 {
-	uint32 state = ICL_NORMAL;
-	if (flags & B_DISABLED)
-		state = ICL_DISABLED;
-	else if (flags & (B_ACTIVATED | B_PARTIALLY_ACTIVATED | B_CLICKED))
-		state = ICL_ACTIVATED;
-	else if (flags & (B_HOVER | B_FOCUSED))
-		state = ICL_HOVER;
-	return state;
+	if (!_DrawImage("SliderThumb", _FlagsToState(flags), view, rect, orientation))
+		HaikuControlLook::DrawSliderThumb(view, rect, updateRect, base, flags, orientation);
+}
+
+
+void
+ImageControlLook::DrawSliderTriangle(BView* view, BRect& rect, const BRect& updateRect,
+	const rgb_color& base, uint32 flags, orientation orientation)
+{
+	if (!_DrawImage("SliderTriangle", _FlagsToState(flags), view, rect, orientation))
+		HaikuControlLook::DrawSliderTriangle(view, rect, updateRect, base, flags, orientation);
+}
+
+
+void
+ImageControlLook::DrawSliderTriangle(BView* view, BRect& rect, const BRect& updateRect,
+	const rgb_color& base, const rgb_color& fill, uint32 flags, orientation orientation)
+{
+	if (!_DrawImage("SliderTriangle", _FlagsToState(flags), view, rect, orientation))
+		HaikuControlLook::DrawSliderTriangle(view, rect, updateRect, base, fill, flags,
+			orientation);
 }
 
 
 bool
-ImageControlLook::_DrawButtonBackground(BView* view, BRect& rect, const BRect& updateRect,
-	bool popupIndicator, uint32 flags, uint32 borders, orientation orientation)
+ImageControlLook::_DrawImage(const char* type, uint32 state, BView* view, BRect rect,
+	orientation orientation)
 {
-	uint32 state = _FlagsToState(flags);
-	BBitmap* tile = _Image("Button", state, ICL_MIDDLE);
-	BBitmap* left = _Image("Button", state, ICL_LEFT);
-	BBitmap* right = _Image("Button", state, ICL_RIGHT);
+	BBitmap* image = _Image(type, state);
+	if (image != NULL && orientation == B_HORIZONTAL) {
+		view->SetDrawingMode(B_OP_ALPHA);
+		view->DrawBitmap(image, rect);
+		return true;
+	}
+	return false;
+}
+
+
+bool
+ImageControlLook::_DrawTiledImage(const char* type, uint32 state, BView* view, BRect rect,
+	BRect updateRect, orientation orientation)
+{
+	BBitmap* tile = _Image(type, state, ICL_MIDDLE);
+	BBitmap* left = _Image(type, state, ICL_LEFT);
+	BBitmap* right = _Image(type, state, ICL_RIGHT);
 
 	if (orientation == B_VERTICAL || tile == NULL)
 		return false;
@@ -163,19 +182,21 @@ ImageControlLook::_DrawButtonBackground(BView* view, BRect& rect, const BRect& u
 	for (float left = minX; left + sliceWidth < maxX; left += sliceWidth) {
 		tileRect.left = left;
 		tileRect.right = left + sliceWidth;
-		view->DrawBitmap(tile, tileRect);
+		if (tileRect.Intersects(updateRect))
+			view->DrawBitmap(tile, tileRect);
 	}
 	tileRect.right = maxX;
 	tileRect.left = maxX - sliceWidth;
-	view->DrawBitmap(tile, tileRect);
+	if (tileRect.Intersects(updateRect))
+		view->DrawBitmap(tile, tileRect);
 
 	BRect sideRect(0, 0, minX, rect.Height());
-	if (left != NULL && (borders & B_LEFT_BORDER))
+	if (left != NULL && sideRect.Intersects(updateRect))
 		view->DrawBitmap(left, sideRect);
 
 	sideRect.left = maxX;
 	sideRect.right = view->Bounds().right;
-	if (right != NULL && (borders & B_RIGHT_BORDER))
+	if (right != NULL && sideRect.Intersects(updateRect))
 		view->DrawBitmap(right, sideRect);
 
 	return true;
@@ -195,6 +216,10 @@ ImageControlLook::_Image(const char* type, uint32 state, uint32 side)
 		nosideList = &fCheckBox_Unchecked;
 	else if (strcmp(type, "CheckBox-Checked") == 0)
 		nosideList = &fCheckBox_Checked;
+	else if (strcmp(type, "SliderThumb") == 0)
+		nosideList = &fSliderThumb;
+	else if (strcmp(type, "SliderTriangle") == 0)
+		nosideList = &fSliderTriangle;
 
 	if (sideList != NULL && (*sideList)[side][state] == NULL)
 		(*sideList)[side][state] = BTranslationUtils::GetBitmapFile(_ImagePath(type, state, side));
@@ -221,6 +246,20 @@ ImageControlLook::_ImagePath(const char* type, uint32 state, uint32 side)
 	imgPath.Append(leaf);
 	printf("[ImageControlLook] Searching for %s…\n", imgPath.Path());
 	return imgPath.Path();
+}
+
+
+uint32
+ImageControlLook::_FlagsToState(uint32 flags)
+{
+	uint32 state = ICL_NORMAL;
+	if (flags & B_DISABLED)
+		state = ICL_DISABLED;
+	else if (flags & (B_ACTIVATED | B_PARTIALLY_ACTIVATED | B_CLICKED))
+		state = ICL_ACTIVATED;
+	else if (flags & (B_HOVER | B_FOCUSED))
+		state = ICL_HOVER;
+	return state;
 }
 
 

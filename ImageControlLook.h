@@ -102,23 +102,41 @@ public:
 									const rgb_color& base,
 									uint32 flags = 0);
 
-protected:
-	bool						_DrawButtonBackground(BView* view, BRect& rect,
-									const BRect& updateRect, bool popupIndicator,
-									uint32 flags, uint32 borders,
+	virtual	void				DrawSliderThumb(BView* view, BRect& rect,
+									const BRect& updateRect,
+									const rgb_color& base, uint32 flags,
+									orientation orientation);
+
+	virtual	void				DrawSliderTriangle(BView* view, BRect& rect,
+									const BRect& updateRect,
+									const rgb_color& base, uint32 flags,
+									orientation orientation);
+	virtual	void				DrawSliderTriangle(BView* view, BRect& rect,
+									const BRect& updateRect,
+									const rgb_color& base,
+									const rgb_color& fill, uint32 flags,
 									orientation orientation);
 
 private:
-	uint32						_FlagsToState(uint32 flags);
+	bool						_DrawImage(const char* type, uint32 state, BView* view, BRect rect,
+									orientation orientation = B_HORIZONTAL);
+	bool						_DrawTiledImage(const char* type, uint32 state, BView* view,
+									BRect rect, BRect updateRect,
+									orientation orientation = B_HORIZONTAL);
+
 	BBitmap*					_Image(const char* type, uint32 state, uint32 side = ICL_NO_SIDE);
 	const char*					_ImagePath(const char* type, uint32 state,
 									uint32 side = ICL_NO_SIDE);
 
+	uint32						_FlagsToState(uint32 flags);
+
 	BPath fImageRoot;
 
-	SidedImages fButton;
+	SidedImages   fButton;
 	UnsidedImages fCheckBox_Checked;
 	UnsidedImages fCheckBox_Unchecked;
+	UnsidedImages fSliderThumb;
+	UnsidedImages fSliderTriangle;
 };
 
 #endif	// IMAGE_CONTROL_LOOK_H
