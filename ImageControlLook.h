@@ -27,7 +27,7 @@ enum {
 };
 
 enum {
-	ICL_ACTIVE,
+	ICL_NORMAL,
 	ICL_INACTIVE,
 	ICL_HOVER,
 	ICL_DISABLED,
@@ -35,7 +35,7 @@ enum {
 };
 
 
-const char* kStates[] = { "Active", "Inactive", "Hover", "Disabled", "Activated" };
+const char* kStates[] = { "Normal", "Inactive", "Hover", "Disabled", "Activated" };
 const char* kSides[] = { "Middle", "Left", "Right" };
 
 
@@ -95,9 +95,11 @@ public:
 protected:
 	bool						_DrawButtonBackground(BView* view, BRect& rect,
 									const BRect& updateRect, bool popupIndicator,
-									uint32 flags, orientation orientation);
+									uint32 flags, uint32 borders,
+									orientation orientation);
 
 private:
+	uint32						_FlagsToState(uint32 flags);
 	BBitmap*					_Image(const char* type, uint32 side, uint32 state);
 	const char*					_ImagePath(const char* type, uint32 side, uint32 state);
 

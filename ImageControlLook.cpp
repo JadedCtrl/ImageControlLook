@@ -40,7 +40,7 @@ void
 ImageControlLook::DrawButtonFrame(BView* view, BRect& rect, const BRect& updateRect,
 	const rgb_color& base, const rgb_color& background, uint32 flags, uint32 borders)
 {
-	if (_Image("Button", ICL_MIDDLE, ICL_ACTIVE) == NULL)
+	if (_Image("Button", ICL_MIDDLE, ICL_NORMAL) == NULL)
 		HaikuControlLook::DrawButtonFrame(view, rect, updateRect, base, background, flags, borders);
 }
 
@@ -49,7 +49,7 @@ void
 ImageControlLook::DrawButtonFrame(BView* view, BRect& rect, const BRect& updateRect, float radius,
 	const rgb_color& base, const rgb_color& background, uint32 flags, uint32 borders)
 {
-	if (_Image("Button", ICL_MIDDLE, ICL_ACTIVE) == NULL)
+	if (_Image("Button", ICL_MIDDLE, ICL_NORMAL) == NULL)
 		HaikuControlLook::DrawButtonFrame(view, rect, updateRect, radius, base, background, flags,
 			borders);
 }
@@ -60,7 +60,7 @@ ImageControlLook::DrawButtonFrame(BView* view, BRect& rect, const BRect& updateR
 	float leftTopRadius, float rightTopRadius, float leftBottomRadius, float rightBottomRadius,
 	const rgb_color& base, const rgb_color& background, uint32 flags, uint32 borders)
 {
-	if (_Image("Button", ICL_MIDDLE, ICL_ACTIVE) == NULL)
+	if (_Image("Button", ICL_MIDDLE, ICL_NORMAL) == NULL)
 		HaikuControlLook::DrawButtonFrame(view, rect, updateRect, leftTopRadius, rightTopRadius,
 			leftBottomRadius, rightBottomRadius, base, background, flags, borders);
 }
@@ -70,7 +70,7 @@ void
 ImageControlLook::DrawButtonBackground(BView* view, BRect& rect, const BRect& updateRect,
 	const rgb_color& base, uint32 flags, uint32 borders, orientation orientation)
 {
-	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, orientation))
+	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, borders, orientation))
 		HaikuControlLook::DrawButtonBackground(view, rect, updateRect, base, flags, borders,
 			orientation);
 }
@@ -80,7 +80,7 @@ void
 ImageControlLook::DrawButtonBackground(BView* view, BRect& rect, const BRect& updateRect,
 	float radius, const rgb_color& base, uint32 flags, uint32 borders, orientation orientation)
 {
-	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, orientation))
+	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, borders, orientation))
 		HaikuControlLook::DrawButtonBackground(view, rect, updateRect, radius, base, flags, borders,
 			orientation);
 }
@@ -91,23 +91,31 @@ ImageControlLook::DrawButtonBackground(BView* view, BRect& rect, const BRect& up
 	float leftTopRadius, float rightTopRadius, float leftBottomRadius, float rightBottomRadius,
 	const rgb_color& base, uint32 flags, uint32 borders, orientation orientation)
 {
-	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, orientation))
+	if (!_DrawButtonBackground(view, rect, updateRect, false, flags, borders, orientation))
 		HaikuControlLook::DrawButtonBackground(view, rect, updateRect, leftTopRadius,
 			rightTopRadius,leftBottomRadius, rightBottomRadius, base, flags, borders, orientation);
 }
 
 
-bool
-ImageControlLook::_DrawButtonBackground(BView* view, BRect& rect, const BRect& updateRect,
-	bool popupIndicator, uint32 flags, orientation orientation)
+uint32
+ImageControlLook::_FlagsToState(uint32 flags)
 {
-	uint32 state = ICL_ACTIVE;
+	uint32 state = ICL_NORMAL;
 	if (flags & B_DISABLED)
 		state = ICL_DISABLED;
-	else if (flags & B_ACTIVATED)
+	else if (flags & (B_ACTIVATED | B_PARTIALLY_ACTIVATED | B_CLICKED))
 		state = ICL_ACTIVATED;
-	else if (flags & B_HOVER)
+	else if (flags & (B_HOVER | B_FOCUSED))
 		state = ICL_HOVER;
+	return state;
+}
+
+
+bool
+ImageControlLook::_DrawButtonBackground(BView* view, BRect& rect, const BRect& updateRect,
+	bool popupIndicator, uint32 flags, uint32 borders, orientation orientation)
+{
+	uint32 state = _FlagsToState(flags);
 
 	BBitmap* tile = _Image("Button", ICL_MIDDLE, state);
 	BBitmap* left = _Image("Button", ICL_LEFT, state);
@@ -141,12 +149,12 @@ ImageControlLook::_DrawButtonBackground(BView* view, BRect& rect, const BRect& u
 	view->DrawBitmap(tile, tileRect);
 
 	BRect sideRect(0, 0, minX, rect.Height());
-	if (left != NULL)
+	if (left != NULL && (borders & B_LEFT_BORDER))
 		view->DrawBitmap(left, sideRect);
 
 	sideRect.left = maxX;
 	sideRect.right = view->Bounds().right;
-	if (right != NULL)
+	if (right != NULL && (borders & B_RIGHT_BORDER))
 		view->DrawBitmap(right, sideRect);
 
 	return true;

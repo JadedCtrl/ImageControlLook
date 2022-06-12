@@ -1,0 +1,5 @@
+Using GIMP…
+Inactive: 15.0 force on eraser
+Disabled: 30.0 force on eraser
+Hover [Blue]: Light, 60.0 force on Air 2×
+Actived [Blue]: Dark, 60.0 force on Air 2×
