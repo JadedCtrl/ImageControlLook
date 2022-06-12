@@ -22,6 +22,9 @@ ImageControlLook::ImageControlLook(image_id id)
 {
 	for (int i = 0; i < 3; i++)
 		fButton[i].fill(NULL);
+	fCheckBox_Checked.fill(NULL);
+	fCheckBox_Unchecked.fill(NULL);
+
 	fImageRoot = BPath("/boot/home/Desktop/projects/haiku/ImageControlLook/data/ImageThemes/OS-X-Leopard/");
 }
 
@@ -97,6 +100,25 @@ ImageControlLook::DrawButtonBackground(BView* view, BRect& rect, const BRect& up
 }
 
 
+void
+ImageControlLook::DrawCheckBox(BView* view, BRect& rect, const BRect& updateRect,
+	const rgb_color& base, uint32 flags)
+{
+	BBitmap* checkBox = NULL;
+	if (((BControl*)view)->Value() == B_CONTROL_ON)
+		checkBox = _Image("CheckBox-Checked", _FlagsToState(flags & ~B_ACTIVATED));
+	else
+		checkBox = _Image("CheckBox-Unchecked", _FlagsToState(flags));
+
+	if (checkBox == NULL)
+		HaikuControlLook::DrawCheckBox(view, rect, updateRect, base, flags);
+	else {
+		view->SetDrawingMode(B_OP_ALPHA);
+		view->DrawBitmap(checkBox, rect);
+	}
+}
+
+
 uint32
 ImageControlLook::_FlagsToState(uint32 flags)
 {
@@ -116,10 +138,9 @@ ImageControlLook::_DrawButtonBackground(BView* view, BRect& rect, const BRect& u
 	bool popupIndicator, uint32 flags, uint32 borders, orientation orientation)
 {
 	uint32 state = _FlagsToState(flags);
-
-	BBitmap* tile = _Image("Button", ICL_MIDDLE, state);
-	BBitmap* left = _Image("Button", ICL_LEFT, state);
-	BBitmap* right = _Image("Button", ICL_RIGHT, state);
+	BBitmap* tile = _Image("Button", state, ICL_MIDDLE);
+	BBitmap* left = _Image("Button", state, ICL_LEFT);
+	BBitmap* right = _Image("Button", state, ICL_RIGHT);
 
 	if (orientation == B_VERTICAL || tile == NULL)
 		return false;
@@ -162,16 +183,35 @@ ImageControlLook::_DrawButtonBackground(BView* view, BRect& rect, const BRect& u
 
 
 BBitmap*
-ImageControlLook::_Image(const char* type, uint32 side, uint32 state)
+ImageControlLook::_Image(const char* type, uint32 state, uint32 side)
 {
-	if (fButton[side][state] == NULL)
-		fButton[side][state] = BTranslationUtils::GetBitmapFile(_ImagePath(type, side, state));
-	return fButton[side][state];
+	SidedImages* sideList = NULL;
+	UnsidedImages* nosideList = NULL;
+	BBitmap* image = NULL;
+
+	if (strcmp(type, "Button") == 0)
+		sideList = &fButton;
+	else if (strcmp(type, "CheckBox-Unchecked") == 0)
+		nosideList = &fCheckBox_Unchecked;
+	else if (strcmp(type, "CheckBox-Checked") == 0)
+		nosideList = &fCheckBox_Checked;
+
+	if (sideList != NULL && (*sideList)[side][state] == NULL)
+		(*sideList)[side][state] = BTranslationUtils::GetBitmapFile(_ImagePath(type, state, side));
+	if (sideList != NULL)
+		image = (*sideList)[side][state];
+
+	if (nosideList != NULL && (*nosideList)[state] == NULL)
+		(*nosideList)[state] = BTranslationUtils::GetBitmapFile(_ImagePath(type, state));
+	if (nosideList != NULL)
+		image = (*nosideList)[state];
+
+	return image;
 }
 
 
 const char*
-ImageControlLook::_ImagePath(const char* type, uint32 side, uint32 state)
+ImageControlLook::_ImagePath(const char* type, uint32 state, uint32 side)
 {
 	BString leaf = kStates[state];
 	leaf << kSides[side];
@@ -179,7 +219,7 @@ ImageControlLook::_ImagePath(const char* type, uint32 side, uint32 state)
 	BPath imgPath(fImageRoot.Path());
 	imgPath.Append(type);
 	imgPath.Append(leaf);
-	printf("[ImageControlLook] Loaded %s\n", imgPath.Path());
+	printf("[ImageControlLook] Searching for %s…\n", imgPath.Path());
 	return imgPath.Path();
 }
 

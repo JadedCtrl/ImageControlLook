@@ -23,7 +23,8 @@ using BPrivate::HaikuControlLook;
 enum {
 	ICL_MIDDLE,
 	ICL_LEFT,
-	ICL_RIGHT
+	ICL_RIGHT,
+	ICL_NO_SIDE
 };
 
 enum {
@@ -36,7 +37,11 @@ enum {
 
 
 const char* kStates[] = { "Normal", "Inactive", "Hover", "Disabled", "Activated" };
-const char* kSides[] = { "Middle", "Left", "Right" };
+const char* kSides[] = { "Middle", "Left", "Right", "" };
+
+
+typedef std::array<std::array<BBitmap*, 5>, 3> SidedImages;
+typedef std::array<BBitmap*, 5> UnsidedImages;
 
 
 class ImageControlLook : public HaikuControlLook {
@@ -92,6 +97,11 @@ public:
 									uint32 borders = B_ALL_BORDERS,
 									orientation orientation = B_HORIZONTAL);
 
+	virtual	void				DrawCheckBox(BView* view, BRect& rect,
+									const BRect& updateRect,
+									const rgb_color& base,
+									uint32 flags = 0);
+
 protected:
 	bool						_DrawButtonBackground(BView* view, BRect& rect,
 									const BRect& updateRect, bool popupIndicator,
@@ -100,12 +110,15 @@ protected:
 
 private:
 	uint32						_FlagsToState(uint32 flags);
-	BBitmap*					_Image(const char* type, uint32 side, uint32 state);
-	const char*					_ImagePath(const char* type, uint32 side, uint32 state);
+	BBitmap*					_Image(const char* type, uint32 state, uint32 side = ICL_NO_SIDE);
+	const char*					_ImagePath(const char* type, uint32 state,
+									uint32 side = ICL_NO_SIDE);
 
 	BPath fImageRoot;
 
-	std::array<std::array<BBitmap*, 5>, 3> fButton;
+	SidedImages fButton;
+	UnsidedImages fCheckBox_Checked;
+	UnsidedImages fCheckBox_Unchecked;
 };
 
 #endif	// IMAGE_CONTROL_LOOK_H
