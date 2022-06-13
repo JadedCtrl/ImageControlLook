@@ -20,14 +20,19 @@ class BView;
 
 using BPrivate::HaikuControlLook;
 
-enum {
+enum icl_orient {
+	ICL_HORIZONTAL,
+	ICL_VERTICAL
+};
+
+enum icl_side {
 	ICL_MIDDLE,
 	ICL_LEFT,
 	ICL_RIGHT,
 	ICL_NO_SIDE
 };
 
-enum {
+enum icl_state {
 	ICL_NORMAL,
 	ICL_INACTIVE,
 	ICL_HOVER,
@@ -40,8 +45,8 @@ const char* kStates[] = { "Normal", "Inactive", "Hover", "Disabled", "Activated"
 const char* kSides[] = { "Middle", "Left", "Right", "" };
 
 
-typedef std::array<std::array<BBitmap*, 5>, 3> SidedImages;
-typedef std::array<BBitmap*, 5> UnsidedImages;
+typedef std::array<std::array<std::array<BBitmap*, 5>, 3>, 2> SidedImages;
+typedef std::array<std::array<BBitmap*, 5>, 2> UnsidedImages;
 
 
 class ImageControlLook : public HaikuControlLook {
@@ -123,17 +128,27 @@ public:
 									orientation orientation);
 
 private:
-	bool						_DrawImage(const char* type, uint32 state, BView* view, BRect rect,
+	bool						_DrawImage(const char* type, icl_state state, BView* view, BRect rect,
+									icl_orient orientation = ICL_HORIZONTAL);
+	bool						_DrawImage(const char* type, uint32 flags, BView* view, BRect rect,
 									orientation orientation = B_HORIZONTAL);
-	bool						_DrawTiledImage(const char* type, uint32 state, BView* view,
+
+	bool						_DrawTiledImage(const char* type, icl_state state, BView* view,
+									BRect rect, BRect updateRect,
+									icl_orient orientation = ICL_HORIZONTAL);
+	bool						_DrawTiledImage(const char* type, uint32 flags, BView* view,
 									BRect rect, BRect updateRect,
 									orientation orientation = B_HORIZONTAL);
 
-	BBitmap*					_Image(const char* type, uint32 state, uint32 side = ICL_NO_SIDE);
-	const char*					_ImagePath(const char* type, uint32 state,
-									uint32 side = ICL_NO_SIDE);
+	BBitmap*					_Image(const char* type, icl_state state,
+									icl_side side = ICL_NO_SIDE,
+									icl_orient orientation = ICL_HORIZONTAL);
+	const char*					_ImagePath(const char* type, icl_state state,
+									icl_side side = ICL_NO_SIDE,
+									icl_orient orientation = ICL_HORIZONTAL);
 
-	uint32						_FlagsToState(uint32 flags);
+	icl_state					_FlagsToState(uint32 flags);
+	icl_orient					_ICLOrientation(orientation orientation);
 
 	BPath fImageRoot;
 
