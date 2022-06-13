@@ -21,7 +21,7 @@ ImageControlLook::ImageControlLook(image_id id)
 	fSliderThumb.fill(NULL);
 	fSliderTriangle.fill(NULL);
 
-	fImageRoot = BPath("/boot/home/Desktop/projects/haiku/ImageControlLook/data/ImageThemes/OS-X-Leopard/");
+	fImageRoot = BPath("/boot/home/Desktop/projects/haiku/ImageControlLook/data/ImageThemes/Akva/");
 }
 
 
