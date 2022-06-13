@@ -16,8 +16,11 @@ ImageControlLook::ImageControlLook(image_id id)
 {
 	for (int i = 0; i < 3; i++)
 		fButton[i].fill(NULL);
+
 	fCheckBox_Checked.fill(NULL);
 	fCheckBox_Unchecked.fill(NULL);
+	fRadioButton_Checked.fill(NULL);
+	fRadioButton_Unchecked.fill(NULL);
 	fSliderThumb.fill(NULL);
 	fSliderTriangle.fill(NULL);
 
@@ -108,6 +111,21 @@ ImageControlLook::DrawCheckBox(BView* view, BRect& rect, const BRect& updateRect
 
 	if (!drawn)
 		HaikuControlLook::DrawCheckBox(view, rect, updateRect, base, flags);
+}
+
+
+void
+ImageControlLook::DrawRadioButton(BView* view, BRect& rect, const BRect& updateRect,
+	const rgb_color& base, uint32 flags)
+{
+	bool drawn = false;
+	if (((BControl*)view)->Value() == B_CONTROL_ON)
+		drawn = _DrawImage("RadioButton-Checked", _FlagsToState(flags & ~B_ACTIVATED), view, rect);
+	else
+		drawn = _DrawImage("RadioButton-Unchecked", _FlagsToState(flags), view, rect);
+
+	if (!drawn)
+		HaikuControlLook::DrawRadioButton(view, rect, updateRect, base, flags);
 }
 
 
@@ -216,6 +234,10 @@ ImageControlLook::_Image(const char* type, uint32 state, uint32 side)
 		nosideList = &fCheckBox_Unchecked;
 	else if (strcmp(type, "CheckBox-Checked") == 0)
 		nosideList = &fCheckBox_Checked;
+	else if (strcmp(type, "RadioButton-Unchecked") == 0)
+		nosideList = &fRadioButton_Unchecked;
+	else if (strcmp(type, "RadioButton-Checked") == 0)
+		nosideList = &fRadioButton_Checked;
 	else if (strcmp(type, "SliderThumb") == 0)
 		nosideList = &fSliderThumb;
 	else if (strcmp(type, "SliderTriangle") == 0)

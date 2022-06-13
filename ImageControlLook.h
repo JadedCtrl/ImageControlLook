@@ -102,6 +102,11 @@ public:
 									const rgb_color& base,
 									uint32 flags = 0);
 
+	virtual	void				DrawRadioButton(BView* view, BRect& rect,
+									const BRect& updateRect,
+									const rgb_color& base,
+									uint32 flags = 0);
+
 	virtual	void				DrawSliderThumb(BView* view, BRect& rect,
 									const BRect& updateRect,
 									const rgb_color& base, uint32 flags,
@@ -135,6 +140,8 @@ private:
 	SidedImages   fButton;
 	UnsidedImages fCheckBox_Checked;
 	UnsidedImages fCheckBox_Unchecked;
+	UnsidedImages fRadioButton_Checked;
+	UnsidedImages fRadioButton_Unchecked;
 	UnsidedImages fSliderThumb;
 	UnsidedImages fSliderTriangle;
 };
